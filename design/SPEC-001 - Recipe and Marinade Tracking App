@@ -1,0 +1,64 @@
+# SPEC-001 - Recipe and Marinade Tracking App
+
+## Background
+
+This design originates from a need to easily track and rate custom recipe blends, particularly for marinades and spice mixes. The user wants a mobile-friendly solution that allows them to enter recipes on their phone, sync them to a cloud database, and later review, rate, and adjust those recipes easily.
+
+## Requirements
+
+- **Must have**: The app should allow users to enter recipes and marinades via their phone and store them in a cloud-hosted SQL database.
+- **Must have**: Users should be able to rate and leave feedback on each recipe entry.
+- **Should have**: The app can require an internet connection for simplicity, so all data is synced in real time.
+- **Must have**: Ability to track iterations of a recipe so that different versions can be reviewed and rated.
+
+## Method
+
+We are using a client-server architecture with a mobile app as the client, a RESTful API as the backend server, and a cloud-hosted SQL database. 
+
+The database schema includes:
+- A `recipes` table for core recipe details.
+- A `recipe_versions` table for tracking different iterations of a recipe.
+- A `recipe_ingredients` table to store each ingredient and its amount per version.
+- A `feedback` table for ratings and comments on each recipe version.
+
+Below is the PlantUML diagram illustrating the architecture:
+
+```plantuml
+@startuml
+skinparam componentStyle rectangle
+title Recipe Tracker – Full Schema with Feedback
+
+entity "recipes" as recipes {
+  *id : uuid <<PK>>
+  --
+  name        : varchar(120)
+  category    : varchar(60)
+  created_at  : timestamptz
+}
+
+entity "recipe_versions" as versions {
+  *id         : uuid <<PK>>
+  recipe_id   : uuid <<FK>>
+  version_no  : int
+  created_at  : timestamptz
+}
+
+entity "recipe_ingredients" as ingredients {
+  *id         : uuid <<PK>>
+  version_id  : uuid <<FK>>
+  ingredient  : varchar(100)
+  amount      : varchar(50)
+}
+
+entity "feedback" as feedback {
+  *id         : uuid <<PK>>
+  version_id  : uuid <<FK>>
+  rating     : smallint // 1–5
+  comment    : text
+}
+
+recipes ||--o{ versions : has many
+versions ||--o{ ingredients : has many
+versions ||--o{ feedback : receives
+
+@enduml
